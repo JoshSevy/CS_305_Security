@@ -53,7 +53,7 @@ class ServerController{
             hex.append(String.format("%02x", b));
         }
         return hex.toString();
-    }}
+    }
 
     @RequestMapping("/hash")
     public String myHash(){
