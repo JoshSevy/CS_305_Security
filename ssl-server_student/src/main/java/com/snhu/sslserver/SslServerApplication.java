@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -26,6 +27,24 @@ class ServerController{
 	// Security constants for input validation
 	private static final int MAX_INPUT_LENGTH = 10000; // Max 10KB
 	private static final int MAX_HASH_LENGTH = 64; // SHA-256 hex string length
+
+	/**
+	 * Redirects root path to /hash endpoint
+	 * @return redirect to /hash
+	 */
+	@GetMapping("/")
+	public RedirectView redirectRoot() {
+		return new RedirectView("/hash", true, false);
+	}
+
+	/**
+	 * Catch-all route that redirects any undefined paths to /hash endpoint
+	 * @return redirect to /hash
+	 */
+	@GetMapping("/**")
+	public RedirectView redirectAllOtherRoutes() {
+		return new RedirectView("/hash", true, false);
+	}
 
 	/**
 	 * Validates and sanitizes input data to prevent malicious inputs
