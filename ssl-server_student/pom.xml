@@ -15,7 +15,7 @@
 	<description>ssl-server skeleton for CS-305</description>
 
 	<properties>
-		<java.version>1.8</java.version>
+		<java.version>17</java.version>
 	</properties>
 
 	<dependencies>
@@ -47,6 +47,13 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<plugin>
+      			<groupId>org.apache.maven.plugins</groupId>
+      			<artifactId>maven-compiler-plugin</artifactId>
+      			<configuration>
+        			<release>17</release>
+      			</configuration>
+    		</plugin>
 			<plugin>
             	<groupId>org.owasp</groupId>
             	<artifactId>dependency-check-maven</artifactId>
