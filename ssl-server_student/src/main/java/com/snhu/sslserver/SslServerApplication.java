@@ -2,10 +2,11 @@ package com.snhu.sslserver;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -23,10 +24,79 @@ public class SslServerApplication {
 class ServerController{
 	private static final String HASH_ALGORITHM = "SHA-256";
 
+	// Security constants for input validation
+	private static final int MAX_INPUT_LENGTH = 10000; // Max 10KB
+	private static final int MAX_HASH_LENGTH = 64; // SHA-256 hex string length
+
+	/**
+	 * Validates and sanitizes input data to prevent malicious inputs
+	 * @param data the input data to validate
+	 * @param paramName the parameter name for error messages
+	 * @throws ResponseStatusException if validation fails
+	 */
+	private void validateInput(String data, String paramName) {
+		// Check for null
+		if (data == null) {
+			throw new ResponseStatusException(
+				HttpStatus.BAD_REQUEST,
+				paramName + " cannot be null"
+			);
+		}
+
+		// Check for excessive length (DoS prevention)
+		if (data.length() > MAX_INPUT_LENGTH) {
+			throw new ResponseStatusException(
+				HttpStatus.BAD_REQUEST,
+				paramName + " exceeds maximum length of " + MAX_INPUT_LENGTH + " characters"
+			);
+		}
+	}
+
+	/**
+	 * Validates expected hash format
+	 * @param hash the hash string to validate
+	 * @throws ResponseStatusException if validation fails
+	 */
+	private void validateHashFormat(String hash) {
+		// Check length
+		if (hash.length() != MAX_HASH_LENGTH) {
+			throw new ResponseStatusException(
+				HttpStatus.BAD_REQUEST,
+				"Invalid hash format: expected " + MAX_HASH_LENGTH + " hex characters"
+			);
+		}
+
+		// Check for valid hexadecimal characters only
+		if (!hash.matches("^[a-fA-F0-9]+$")) {
+			throw new ResponseStatusException(
+				HttpStatus.BAD_REQUEST,
+				"Invalid hash format: must contain only hexadecimal characters (0-9, a-f, A-F)"
+			);
+		}
+	}
+
+	/**
+	 * HTML-encodes a string to prevent XSS attacks
+	 * @param input the string to encode
+	 * @return HTML-encoded string
+	 */
+	private String htmlEncode(String input) {
+		if (input == null) {
+			return "";
+		}
+		return input
+			.replace("&", "&amp;")
+			.replace("<", "&lt;")
+			.replace(">", "&gt;")
+			.replace("\"", "&quot;")
+			.replace("'", "&#x27;")
+			.replace("/", "&#x2F;");
+	}
+
 	/**
 	 * Method to create SHA-256 checksum of input data
-	 * @param data
-	 * @return
+	 * @param data the input string to hash
+	 * @return hexadecimal string representation of the SHA-256 hash
 	 */
 	private String createChecksum(String data) {
 		try {
@@ -44,8 +114,8 @@ class ServerController{
 
 	/**
 	 * Helper method to convert byte array to hexadecimal string
-	 * @param bytes
-	 * @return
+	 * @param bytes the byte array to convert
+	 * @return hexadecimal string representation
 	 */
 	private String bytesToHex(byte[] bytes) {
 		StringBuilder hex = new StringBuilder();
@@ -55,27 +125,37 @@ class ServerController{
 		return hex.toString();
 	}
 
-	@RequestMapping("/hash")
 	@GetMapping("/hash")
 	public String hash(
 			@RequestParam String data,
 			@RequestParam(required = false) String expected) {
 
+		// Validate input data
+		validateInput(data, "data");
+
+		// Validate expected hash if provided
+		if (expected != null && !expected.trim().isEmpty()) {
+			validateInput(expected, "expected");
+			validateHashFormat(expected.trim());
+		}
+
 		String checksum = createChecksum(data);
 
 		StringBuilder response = new StringBuilder();
 
-		response.append("data: ").append(data).append("\n\n");
+		// Use HTML encoding to prevent XSS attacks
+		response.append("data: ").append(htmlEncode(data)).append("\n\n");
 		response.append("Message Digest SHA-256 : Checksum Value: ")
-				.append(checksum)
+				.append(checksum) // Hash output is already safe (hex only)
 				.append("\n\n");
 
 		// Verification logic
-		if (expected != null && !expected.isEmpty()) {
-			if (checksum.equalsIgnoreCase(expected)) {
+		if (expected != null && !expected.trim().isEmpty()) {
+			if (checksum.equalsIgnoreCase(expected.trim())) {
 				response.append("Verification Result: PASS ✅");
 			} else {
-				response.append("Verification Result: FAIL ❌");
+				response.append("Verification Result: FAIL ❌\n");
+				response.append("Expected: ").append(expected.trim());
 			}
 		} else {
 			response.append("Verification Result: No comparison checksum provided.");
