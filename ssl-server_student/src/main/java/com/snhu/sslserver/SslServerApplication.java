@@ -23,7 +23,6 @@ public class SslServerApplication {
 @RestController
 class ServerController{
 	private static final String HASH_ALGORITHM = "SHA-256";
-
 	// Security constants for input validation
 	private static final int MAX_INPUT_LENGTH = 10000; // Max 10KB
 	private static final int MAX_HASH_LENGTH = 64; // SHA-256 hex string length
@@ -127,8 +126,13 @@ class ServerController{
 
 	@GetMapping("/hash")
 	public String hash(
-			@RequestParam String data,
+			@RequestParam(required = false) String data,
 			@RequestParam(required = false) String expected) {
+
+		// If no data parameter provided, show usage information
+		if (data == null || data.trim().isEmpty()) {
+			return displayUsageInformation();
+		}
 
 		// Validate input data
 		validateInput(data, "data");
@@ -162,5 +166,27 @@ class ServerController{
 		}
 
 		return "<pre>" + response + "</pre>";
+	}
+
+	/**
+	 * Displays simple usage information for the /hash endpoint
+	 * @return HTML formatted usage guide
+	 */
+	private String displayUsageInformation() {
+		return "<html><head><style>" +
+			"body { font-family: system-ui; margin: 0; padding: 40px 20px; background: #f5f5f5; }" +
+			".card { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }" +
+			"h1 { margin-top: 0; color: #333; }" +
+			"code { background: #eee; padding: 8px 12px; border-radius: 4px; display: block; margin: 10px 0; font-family: monospace; font-size: 13px; overflow-x: auto; }" +
+			"p { color: #666; line-height: 1.6; margin: 10px 0; }" +
+			"</style></head><body>" +
+			"<div class='card'>" +
+			"<h1>SHA-256 Hash Generator</h1>" +
+			"<p><strong>Usage:</strong></p>" +
+			"<code>/hash?data=HelloWorld</code>" +
+			"<code>/hash?data=HelloWorld&expected=872e4e50ce9990d8b041330c47c9ddd11bec6b503ae9386a99da8584e9bb12c4</code>" +
+			"<p><strong>Limits:</strong> Max 10,000 characters input</p>" +
+			"</div>" +
+			"</body></html>";
 	}
 }
