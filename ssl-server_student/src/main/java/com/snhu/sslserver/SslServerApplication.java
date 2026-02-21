@@ -1,6 +1,7 @@
 package com.snhu.sslserver;
 
 import org.springframework.boot.SpringApplication;
+
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -192,20 +193,12 @@ class ServerController{
 	 * @return HTML formatted usage guide
 	 */
 	private String displayUsageInformation() {
-		return "<html><head><style>" +
-			"body { font-family: system-ui; margin: 0; padding: 40px 20px; background: #f5f5f5; }" +
-			".card { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }" +
-			"h1 { margin-top: 0; color: #333; }" +
-			"code { background: #eee; padding: 8px 12px; border-radius: 4px; display: block; margin: 10px 0; font-family: monospace; font-size: 13px; overflow-x: auto; }" +
-			"p { color: #666; line-height: 1.6; margin: 10px 0; }" +
-			"</style></head><body>" +
-			"<div class='card'>" +
-			"<h1>SHA-256 Hash Generator</h1>" +
-			"<p><strong>Usage:</strong></p>" +
-			"<code>/hash?data=HelloWorld</code>" +
-			"<code>/hash?data=HelloWorld&expected=872e4e50ce9990d8b041330c47c9ddd11bec6b503ae9386a99da8584e9bb12c4</code>" +
-			"<p><strong>Limits:</strong> Max 10,000 characters input</p>" +
-			"</div>" +
-			"</body></html>";
+	    return "<!doctype html><html><head><meta charset=\"utf-8\"><title>SHA-256 Hash Generator</title></head>"
+	        + "<body style=\"font-family:system-ui;padding:24px;\">"
+	        + "<h1>SHA-256 Hash Generator</h1>"
+	        + "<p>Usage:</p>"
+	        + "<pre>/hash?data=HelloWorld\n/hash?data=HelloWorld&expected=872e4e50ce9990d8b041330c47c9ddd11bec6b503ae9386a99da8584e9bb12c4</pre>"
+	        + "<p><strong>Limits:</strong> Max 10,000 characters</p>"
+	        + "</body></html>";
 	}
 }
