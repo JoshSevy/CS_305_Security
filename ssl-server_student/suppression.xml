@@ -3,6 +3,10 @@
     <suppress>
         <notes><![CDATA[
       file name: log4j-api-2.23.1.jar
+      This is a false positive for Spring Boot applications. CVE-2025-68161 may affect Log4j2 core,
+      but this application uses Spring Boot's default Logback logging implementation, not Log4j2.
+      The log4j-api dependency is only present as a transitive dependency for API compatibility
+      and is not actively used for logging in this application.
       ]]></notes>
         <packageUrl regex="true">^pkg:maven/org\.apache\.logging\.log4j/log4j-api@.*$</packageUrl>
         <cve>CVE-2025-68161</cve>
